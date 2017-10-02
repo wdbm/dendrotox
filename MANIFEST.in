@@ -1,0 +1,6 @@
+include dendrotox_example_bot_print_last_message.py
+include dendrotox_example_bot.py
+include dendrotox.py
+include LICENSE
+include README.md
+include setup.py
