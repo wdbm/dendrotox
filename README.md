@@ -30,7 +30,6 @@ cd Tox
 Install the Sodium crypto library.
 
 ```Bash
-# install Sodium crypto library
 git clone https://github.com/jedisct1/libsodium.git
 cd libsodium
 git checkout tags/1.0.3
