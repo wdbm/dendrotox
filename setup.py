@@ -9,7 +9,7 @@ def main():
 
     setuptools.setup(
         name             = "dendrotox",
-        version          = "2017.10.02.2150",
+        version          = "2017.10.04.1604",
         description      = "Python interface to Tox distributed communications",
         long_description = long_description(),
         url              = "https://github.com/wdbm/dendrotox",

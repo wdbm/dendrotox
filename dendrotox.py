@@ -43,7 +43,7 @@ import time
 import uuid
 
 name    = "dendrotox"
-version = "2017-10-02T2150Z"
+version = "2017-10-04T1604Z"
 
 global messages_received
 messages_received = []
@@ -308,7 +308,7 @@ def set_status(
 def send_request(
     contact  = None, # Tox ID
     contacts = None, # list of Tox IDs
-    text     = None
+    text     = "connection request"
     ):
 
     if contact:
