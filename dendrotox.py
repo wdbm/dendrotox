@@ -43,7 +43,7 @@ import time
 import uuid
 
 name    = "dendrotox"
-version = "2017-10-04T1604Z"
+version = "2017-10-04T2357Z"
 
 global messages_received
 messages_received = []
@@ -528,7 +528,6 @@ def run_command(
 
         while message is None:
 
-            print("loop")
             message = last_received_message(contact = contact, unseen = False)
             print(type(message))
             time.sleep(0.3)
