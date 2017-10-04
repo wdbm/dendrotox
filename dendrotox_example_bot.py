@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 """
@@ -55,7 +55,7 @@ import dendrotox
 import megaparsex
 
 name    = "dendrotox_example_bot"
-version = "2017-10-02T2150Z"
+version = "2017-10-04T1521Z"
 
 def main(options):
 
@@ -134,12 +134,18 @@ def main(options):
 
                     if response.confirmed():
 
-                        print(response.feedback())
+                        dendrotox.send_message(
+                            contact = message.contact(),
+                            text    = response.feedback()
+                        )
                         response.run()
 
                     else:
 
-                        print(response.feedback())
+                        dendrotox.send_message(
+                            contact = message.contact(),
+                            text    = response.feedback()
+                        )
 
                 elif type(response) is megaparsex.command:
 
@@ -156,7 +162,6 @@ def main(options):
                     if output:
 
                         text = "output:\n{output}".format(output = output)
-                        print(text)
                         dendrotox.send_message(
                             contact = message.contact(),
                             text    = text
