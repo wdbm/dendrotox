@@ -43,7 +43,7 @@ import time
 import uuid
 
 name    = "dendrotox"
-version = "2017-10-04T2357Z"
+version = "2017-10-19T2341Z"
 
 global messages_received
 messages_received = []
@@ -231,7 +231,8 @@ def self_ID():
 def start_messaging(
     path_ratox_executable = "/usr/local/bin/ratox",
     launch                = True,
-    pause                 = True
+    pause                 = True,
+    pause_time            = 20
     ):
 
     if not running("ratox"):
@@ -254,7 +255,7 @@ def start_messaging(
         if pause:
 
             # pause for connection to Tox network
-            time.sleep(15)
+            time.sleep(pause_time)
 
 def stop_messaging():
 
@@ -323,7 +324,14 @@ def send_request(
                 contact = contact,
                 text    = text or ""
             )
-            engage_command(command = command)
+
+            try:
+
+                engage_command(command = command)
+
+            except:
+
+                pass
 
 def send_message(
     contact  = None, # Tox ID
@@ -348,7 +356,14 @@ def send_message(
                         text    = text,
                         contact = contact
                     )
-                    engage_command(command = command)
+
+                    try:
+
+                        engage_command(command = command)
+
+                    except:
+
+                        pass
 
                 if filepath:
 
@@ -359,7 +374,14 @@ def send_message(
                             filepath = filepath,
                             contact  = contact
                         )
-                        engage_command(command = command)
+
+                        try:
+
+                            engage_command(command = command)
+
+                        except:
+
+                            pass
 
                     else:
 

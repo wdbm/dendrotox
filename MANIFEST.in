@@ -1,3 +1,4 @@
+include dendrotox_alert.py
 include dendrotox_example_bot_print_last_message.py
 include dendrotox_example_bot.py
 include dendrotox.py

@@ -131,3 +131,11 @@ print(message.__repr__())
 ```
 
 See example bot code for more advanced usage, including message parsing, confirmations and running commands.
+
+# dendrotox_alert.py
+
+The script `dendrotox_alert.py` is a command line script that can be used to send a message to contacts. It attempts to connect with any specified contacts before attempting to send a message to them. If no contacts are specified, it attempts to send a message to all known contacts.
+
+```Bash
+dendrotox_alert.py --text="alert"
+```
