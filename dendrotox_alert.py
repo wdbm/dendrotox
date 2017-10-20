@@ -52,7 +52,7 @@ import time
 import dendrotox
 
 name    = "dendrotox_alert"
-version = "2017-10-19T2341Z"
+version = "2017-10-20T0010Z"
 
 def main(options):
 
@@ -75,9 +75,6 @@ def main(options):
         dendrotox.send_request(
             contacts = contacts
         )
-
-    # Reduce IDs from length 76 characters to 64 characters for ratox.
-    contacts = [contact[:64] for contact in contacts]
 
     text = options["--text"]
 

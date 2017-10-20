@@ -43,7 +43,7 @@ import time
 import uuid
 
 name    = "dendrotox"
-version = "2017-10-19T2341Z"
+version = "2017-10-20T0010Z"
 
 global messages_received
 messages_received = []
@@ -336,8 +336,9 @@ def send_request(
 def send_message(
     contact  = None, # Tox ID
     contacts = None, # list of Tox IDs
-    text     = None,
-    filepath = None
+    text     = None, # text to send
+    filepath = None, # file to send
+    ID64     = True  # reduce ID length from 76 characters to 64 for ratox
     ):
 
     if contact:
@@ -345,6 +346,10 @@ def send_message(
         contacts = [contact]
 
     if contacts:
+
+        if ID64:
+
+            contacts = [contact[:64] for contact in contacts]
 
         for contact in contacts:
 
@@ -522,9 +527,9 @@ def get_input(
     while response is None:
 
         response = last_received_message(
-            contact  = contact, # Tox ID
+            contact  = contact,  # Tox ID
             contacts = contacts, # list of Tox IDs
-            unseen   = True  # unseen messages only
+            unseen   = True      # unseen messages only
         )
 
     return response.text()
