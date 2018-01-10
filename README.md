@@ -1,6 +1,6 @@
 ![](https://raw.githubusercontent.com/wdbm/dendrotox/master/media/dendrotox.png)
 
-`dendrotox` is a Python module designed to enable Python code to interact with the [Tox](https://tox.chat/) distributed communications network, including for the purposes of scripts communicating with people or other scripts. It uses [TokTok Toxcore](https://github.com/TokTok/c-toxcore) and [ratox](https://github.com/kytvi2p/ratox) for interfacing with the Tox network and [megaparsex](https://github.com/wdbm/megaparsex) for parsing.
+`dendrotox` is a Python module designed to enable Python code to interact with the [Tox](https://tox.chat/) distributed communications network, including for the purposes of scripts communicating with people or other scripts. It uses a 2015 version of [ToxCore](https://github.com/irungentoo/toxcore/releases/tag/api_old_version) and [ratox](https://github.com/kytvi2p/ratox) for interfacing with the Tox network and [megaparsex](https://github.com/wdbm/megaparsex) for parsing.
 
 In particular, `dendrotox` interacts with the filesystem provided by the FIFO Tox client [ratox](https://github.com/kytvi2p/ratox). `dendrotox` also provides functionality to send and receive messages, to parse input, to send files, to request confirmations, to provide information such as IP address and weather information, and to run arbitrary commands, including functionality to launch reverse-SSH connections and to restart a script.
 
@@ -53,11 +53,12 @@ sudo make install
 cd ..
 ```
 
-Install TokTok ToxCore.
+Install ToxCore.
 
 ```Bash
-git clone https://github.com/TokTok/c-toxcore.git
-cd c-toxcore
+wget --content-disposition https://codeload.github.com/irungentoo/toxcore/tar.gz/api_old_version
+tar -xvf toxcore-api_old_version.tar.gz
+cd toxcore-api_old_version
 autoreconf --install --force
 mkdir _build
 cd _build
