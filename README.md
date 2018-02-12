@@ -117,6 +117,15 @@ dendrotox.send_message(
 )
 ```
 
+A message can be sent to all contacts in the following way.
+
+```Python
+dendrotox.send_message(
+    contacts = dendrotox.all_contacts(),
+    text     = "yo yo yo"
+)
+```
+
 A list of unseen messages received recently can be accessed in the following ways:
 
 ```Python
@@ -128,7 +137,7 @@ print(messages[0].sender())
 ```Python
 message = dendrotox.last_received_message()
 
-print(message.__repr__())
+print(message)
 ```
 
 See example bot code for more advanced usage, including message parsing, confirmations and running commands.
@@ -140,3 +149,4 @@ The script `dendrotox_alert.py` is a command line script that can be used to sen
 ```Bash
 dendrotox_alert.py --text="alert"
 ```
+
