@@ -52,39 +52,29 @@ import time
 import dendrotox
 
 name    = "dendrotox_alert"
-version = "2017-10-20T0010Z"
+version = "2018-01-10T1829Z"
 
 def main(options):
 
     dendrotox.start_messaging(
         pause_time = 60
     )
-
     dendrotox.set_name(
         text = name + "-" + socket.gethostname()
     )
-
     if options["--contacts"] == "none":
-
         contacts = dendrotox.all_contacts()
-
     else:
-
         contacts = options["--contacts"].split(",")
-
         dendrotox.send_request(
             contacts = contacts
         )
-
     text = options["--text"]
-
     dendrotox.send_message(
         contacts = contacts,
         text     = text
     )
-
     time.sleep(30)
-
     dendrotox.stop_messaging()
 
 if __name__ == "__main__":
