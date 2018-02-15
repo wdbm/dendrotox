@@ -35,6 +35,7 @@
 
 import datetime
 import json
+import logging
 import os
 import requests
 import subprocess
@@ -45,7 +46,7 @@ import uuid
 import technicolor
 
 name    = "dendrotox"
-version = "2018-02-15T1940Z"
+version = "2018-02-15T2028Z"
 
 log = logging.getLogger(name)
 log.addHandler(technicolor.ColorisingStreamHandler())
