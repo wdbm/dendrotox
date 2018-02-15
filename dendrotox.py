@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 """
@@ -46,7 +45,7 @@ import uuid
 import technicolor
 
 name    = "dendrotox"
-version = "2018-02-15T2028Z"
+version = "2018-02-15T2030Z"
 
 log = logging.getLogger(name)
 log.addHandler(technicolor.ColorisingStreamHandler())
