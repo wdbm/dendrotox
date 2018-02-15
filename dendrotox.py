@@ -43,7 +43,7 @@ import time
 import uuid
 
 name    = "dendrotox"
-version = "2018-02-12T0222Z"
+version = "2018-02-12T2339Z"
 
 global messages_received
 messages_received = []
@@ -321,6 +321,23 @@ def send_message(
     if not contacts:
         print("error -- no contacts specified")
 
+def send_request_and_message(
+    contact  = None, # Tox ID
+    contacts = None, # list of Tox IDs
+    text     = None, # text to send
+    filepath = None  # file to send
+    ):
+    send_request(
+        contact  = contact,
+        contacts = contacts
+    )
+    send_message(
+        contact  = contact,
+        contacts = contacts,
+        text     = text,
+        filepath = filepath
+    )
+
 def all_contacts():
     """
     Return a list of contacts by collating all directories at the working
@@ -493,19 +510,39 @@ def engage_command(
 def running(
     program
     ):
-    program = str.encode(program)
     results = subprocess.Popen(
         ["ps", "-A"],
         stdout             = subprocess.PIPE,
         universal_newlines = True
-    ).communicate()[0].split(b"\n")
+    ).communicate()[0].split("\n")
+    results = results
     matches_current = [
-        line for line in results if program in line and b"defunct" not in line
+        line for line in results if program in line and "defunct" not in line
     ]
     if matches_current:
         return True
     else:
         return False
+
+def send_heartbeat(
+    contact  = None, # Tox ID
+    contacts = None  # list of Tox IDs
+    ):
+    try:
+        print("send heartbeat message: {message}".format(message = message))
+        send_request_and_message(
+            contact  = contact,
+            contacts = contacts,
+            text     = megaparsex.heartbeat_message()
+        )
+    except:
+        pass
+    try:
+        import propyte
+        propyte.start_messaging_Pushbullet()
+        propyte.send_message_Pushbullet(text = message)
+    except:
+        pass
 
 # get existing messages and set them to seen
 get_messages()
