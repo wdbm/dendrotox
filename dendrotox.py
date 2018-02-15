@@ -42,8 +42,14 @@ import sys
 import time
 import uuid
 
+import technicolor
+
 name    = "dendrotox"
-version = "2018-02-12T2339Z"
+version = "2018-02-15T1940Z"
+
+log = logging.getLogger(name)
+log.addHandler(technicolor.ColorisingStreamHandler())
+log.setLevel(logging.DEBUG)
 
 global messages_received
 messages_received = []
@@ -202,13 +208,13 @@ def start_messaging(
     ):
     if not running("ratox"):
         if os.path.isfile(path_ratox_executable) and launch:
-            print("\nlaunch ratox\n")
+            log.info("launch ratox")
             engage_command(
                 command    = path_ratox_executable,
                 background = True
             )
         else:
-            print("executable not found: {path}".format(
+            log.error("executable not found: {path}".format(
                 path = path_ratox_executable
             ))
             sys.exit()
@@ -315,11 +321,11 @@ def send_message(
                         except:
                             pass
                     else:
-                        print("error -- {filepath} not found".format(
+                        log.error("error -- {filepath} not found".format(
                             filepath = filepath
                         ))
     if not contacts:
-        print("error -- no contacts specified")
+        log.error("error -- no contacts specified")
 
 def send_request_and_message(
     contact  = None, # Tox ID
@@ -461,7 +467,6 @@ def run_command(
         message = None
         while message is None:
             message = last_received_message(contact = contact, unseen = False)
-            print(type(message))
             time.sleep(0.3)
         command = message.text()
     send_message(
@@ -481,7 +486,7 @@ def run_command(
             text    = "output:\n\n{output}".format(output = output)
         )
     else:
-        print("abort command run")
+        log.info("abort command run")
 
 def engage_command(
     command    = None,
@@ -526,21 +531,24 @@ def running(
 
 def send_heartbeat(
     contact  = None, # Tox ID
-    contacts = None  # list of Tox IDs
+    contacts = None, # list of Tox IDs
+    text     = None
     ):
+    if not text:
+        text = megaparsex.heartbeat_message()
     try:
-        print("send heartbeat message: {message}".format(message = message))
+        log.info("send heartbeat message: {text}".format(text = text))
         send_request_and_message(
             contact  = contact,
             contacts = contacts,
-            text     = megaparsex.heartbeat_message()
+            text     = text
         )
     except:
         pass
     try:
         import propyte
         propyte.start_messaging_Pushbullet()
-        propyte.send_message_Pushbullet(text = message)
+        propyte.send_message_Pushbullet(text = text)
     except:
         pass
 
