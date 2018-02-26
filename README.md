@@ -36,6 +36,7 @@ sudo apt install    \
     checkinstall    \
     check           \
     cmake           \
+    festival        \
     git             \
     libtool         \
     libsodium-dev   \
@@ -128,9 +129,7 @@ When `ratox` is launched for the first time, it creates a Tox profile file `.rat
 
 ```Python
 import dendrotox
-
 dendrotox.start_messaging()
-
 print("Tox ID: " + dendrotox.self_ID())
 ```
 
@@ -138,7 +137,7 @@ A message can be sent to a contact in the following way, where a contact is spec
 
 ```Python
 dendrotox.send_message(
-    contact = Tox_ID,
+    contact = contact,
     text    = "oohai"
 )
 ```
@@ -147,7 +146,7 @@ A message can be sent to multiple contacts in the following way, where contacts 
 
 ```Python
 dendrotox.send_message(
-    contacts = [Tox_ID_1, Tox_ID_2],
+    contacts = [contact_1, contact_2],
     text     = "sup"
 )
 ```
@@ -156,7 +155,7 @@ A message can be sent to all contacts in the following way.
 
 ```Python
 dendrotox.send_message(
-    contacts = dendrotox.all_contacts(),
+    contacts = "all",
     text     = "yo yo yo"
 )
 ```
@@ -165,17 +164,33 @@ A list of unseen messages received recently can be accessed in the following way
 
 ```Python
 messages = dendrotox.received_messages()
-
 print(messages[0].sender())
 ```
 
 ```Python
 message = dendrotox.last_received_message()
-
 print(message)
 ```
 
-See module code and example bot code for more advanced usage, including message parsing, confirmations and running commands.
+A sound call can be sent to a contact in a few ways. One way is by sending a sound file:
+
+```Python
+dendrotox.send_call(contact = contact, filepath = "alert.wav")
+```
+
+Another way is by using a microphone:
+
+```Python
+dendrotox.send_call(contact = contact, record = True)
+```
+
+Another way is by using synthesized speech:
+
+```Python
+dendrotox.send_call_synthesized_speech(contact = contact, text = "This is an alert.")
+```
+
+See module code and example bot code for more advanced usage, including calls, message parsing, confirmations and running commands.
 
 # dendrotox_alert.py
 
@@ -184,4 +199,3 @@ The script `dendrotox_alert.py` is a command line script that can be used to sen
 ```Bash
 dendrotox_alert.py --text="alert"
 ```
-

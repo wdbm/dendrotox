@@ -44,10 +44,11 @@ import uuid
 
 import megaparsex
 import propyte
+import shijian
 import technicolor
 
 name    = "dendrotox"
-version = "2018-02-26T1320Z"
+version = "2018-02-26T2326Z"
 
 log = logging.getLogger(name)
 log.addHandler(technicolor.ColorisingStreamHandler())
@@ -80,16 +81,10 @@ class Message(object):
         if raw_string:
             raw_string_split = raw_string.split()
             if datetime_from_instantiation_time:
-                self.set_datetime_object(
-                    datetime_object = datetime.datetime.utcnow()
-                )
+                self.set_datetime_object(datetime_object = datetime.datetime.utcnow())
             else:
-                self.set_datetime_object(
-                    datetime_string = " ".join(raw_string_split[:2])
-                )
-            self.set_text(
-                text = " ".join(raw_string_split[2:])
-            )
+                self.set_datetime_object(datetime_string = " ".join(raw_string_split[:2]))
+            self.set_text(text = " ".join(raw_string_split[2:]))
 
     def datetime_object(
         self
@@ -120,9 +115,7 @@ class Message(object):
         preserve_visibility = False
         ):
         if not preserve_visibility:
-
             self.set_seen()
-
         return self._contact
 
     def set_contact(
@@ -208,6 +201,27 @@ def start_messaging(
     pause                 = True,
     pause_time            = 20
     ):
+    executables = [
+        "aplay",
+        "arecord",
+        "bash",
+        "ffmpeg",
+        "ratox",
+        "text2wave"
+    ]
+    executables_speech = [
+        "festival",
+        #"espeak",
+        #"pico2wave",
+        #"deep_throat.py"
+    ]
+    for executable in executables:
+        if not shijian.which(executable):
+            log.error("error -- executable not found: {executable}".format(executable = executable))
+            sys.exit()
+    if not any([shijian.which(executable) for executable in executables_speech]):
+        log.error("error -- no speech programs found")
+        sys.exit()
     if not running("ratox"):
         if os.path.isfile(path_ratox_executable) and launch:
             log.info("launch ratox")
@@ -216,9 +230,7 @@ def start_messaging(
                 background = True
             )
         else:
-            log.error("executable not found: {path}".format(
-                path = path_ratox_executable
-            ))
+            log.error("error -- executable not found: {path}".format(path = path_ratox_executable))
             sys.exit()
         if pause:
             # pause for connection to Tox network
@@ -237,9 +249,7 @@ def restart_messaging(
 def set_name(
     text = "scriptwire"
     ):
-    command = "echo \"{text}\" > name/in".format(
-        text    = text or ""
-    )
+    command = "echo \"{text}\" > name/in".format(text = text or "")
     engage_command(command = command)
 
 def set_state(
@@ -253,17 +263,13 @@ def set_state(
     - busy
     - none
     """
-    command = "echo \"{text}\" > state/in".format(
-        text    = text or ""
-    )
+    command = "echo \"{text}\" > state/in".format(text = text or "")
     engage_command(command = command)
 
 def set_status(
     text = "hello world"
     ):
-    command = "echo \"{text}\" > status/in".format(
-        text    = text or ""
-    )
+    command = "echo \"{text}\" > status/in".format(text = text or "")
     engage_command(command = command)
 
 def send_request(
@@ -285,9 +291,9 @@ def send_request(
                 except:
                     pass
             elif len(contact) == 64:
-                log.error("invalid Tox ID -- possibly attempting to use only public key")
+                log.error("error -- invalid Tox ID -- possibly attempting to use only public key")
             else:
-                log.error("invalid Tox ID")
+                log.error("error -- invalid Tox ID")
 
 def requests():
     """
@@ -308,9 +314,7 @@ def accept_request(
     if contacts == "all":
         contacts = requests()
     for contact in contacts:
-        command = "echo 1 > request/out/{contact}".format(
-            contact = contact
-        )
+        command = "echo 1 > request/out/{contact}".format(contact = contact)
         try:
             engage_command(command = command)
         except:
@@ -531,7 +535,7 @@ def contact_calling(
             contact = contact[:64]
         return "pending" in [line.rstrip("\n") for line in open(contact + "/call_state")][0]
     else:
-        log.error("no contact specified")
+        log.error("error -- no contact specified")
         return False
 
 def get_contacts_calling():
@@ -567,8 +571,69 @@ def receive_call(
         engage_command(command = command)
         return True
     else:
-        log.error("no contact specified")
+        log.error("error -- no contact specified")
         return False
+
+def send_call(
+    contact              = None, # Tox ID or public key
+    Tox_ID_to_public_key = True,
+    filepath             = None,
+    record               = False,
+    sample_rate          = 48000
+    ):
+    """
+    Send a call to a specified contact. Sound is sent from sound file or arecord
+    (for microphone) as specified.
+    """
+    if contact:
+        if Tox_ID_to_public_key:
+            contact = contact[:64]
+        if contact_calling(contact = contact):
+            command = command_base.format(contact = contact)
+    else:
+        log.error("error -- no contact specified")
+        return False
+    if filepath:
+        filepath = os.path.expanduser(filepath)
+        if not os.path.exists(filepath):
+            log.error("error -- {filepath} not found".format(filepath = filepath))
+            return False
+        command = "ffmpeg -i {filepath} -ar {sample_rate} -f s16le -acodec pcm_s16le pipe:1 > {contact}/call_in".format(
+            filepath    = filepath,
+            sample_rate = sample_rate,
+            contact     = contact
+        )
+        engage_command(command = command, background = False)
+        return True
+    elif record:
+        command = "arecord -r {sample_rate} -c 1 -f S16_LE > {contact}/call_in".format(
+            sample_rate = sample_rate,
+            contact     = contact
+        )
+        engage_command(command = command)
+        return True
+    else:
+        log.error("error -- neither sound file nor recording specified for sending call")
+        return False
+
+def send_call_synthesized_speech(
+    contact              = None,                # Tox ID or public key
+    text                 = "This is an alert.",
+    Tox_ID_to_public_key = True,
+    sample_rate          = 48000
+    ):
+    filename_tmp = shijian.propose_filename(filename = shijian.time_UTC() + ".wav")
+    command = "echo \"{text}\" | text2wave -o {filename_tmp}".format(
+        text         = text,
+        filename_tmp = filename_tmp
+    )
+    engage_command(command = command, background = False)
+    send_call(
+        contact     = contact,
+        filepath    = filename_tmp,
+        sample_rate = sample_rate
+    )
+    #os.remove(filename_tmp)
 
 def get_input(
     contact  = None,
