@@ -42,14 +42,16 @@ import sys
 import time
 import uuid
 
+import megaparsex
+import propyte
 import technicolor
 
 name    = "dendrotox"
-version = "2018-02-15T2030Z"
+version = "2018-02-26T1320Z"
 
 log = logging.getLogger(name)
 log.addHandler(technicolor.ColorisingStreamHandler())
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
 global messages_received
 messages_received = []
@@ -265,19 +267,70 @@ def set_status(
     engage_command(command = command)
 
 def send_request(
-    contact  = None, # Tox ID
-    contacts = None, # list of Tox IDs
+    contact  = None, # Tox ID or public key
+    contacts = None, # list of Tox IDs or public keys
     text     = "connection request"
+    ):
+    if contact:
+        contacts = [contact]
+    if contacts:
+        for contact in contacts:
+            if len(contact) == 76:
+                command = "echo \"{contact}\" \"{text}\" > request/in".format(
+                    contact = contact,
+                    text    = text or ""
+                )
+                try:
+                    engage_command(command = command)
+                except:
+                    pass
+            elif len(contact) == 64:
+                log.error("invalid Tox ID -- possibly attempting to use only public key")
+            else:
+                log.error("invalid Tox ID")
+
+def requests():
+    """
+    Return a list of contacts who have sent requests.
+    """
+    return [contact for contact in next(os.walk("request/out"))[2]]
+
+def accept_request(
+    contact  = None, # Tox ID or public key
+    contacts = None  # list of Tox IDs or public keys
+    ):
+    """
+    Accept requests from a specified contact, a specified list of contacts or
+    from all contacts that have sent requests.
+    """
+    if contact:
+        contacts = [contact]
+    if contacts == "all":
+        contacts = requests()
+    for contact in contacts:
+        command = "echo 1 > request/out/{contact}".format(
+            contact = contact
+        )
+        try:
+            engage_command(command = command)
+        except:
+            pass
+
+def remove(
+    contact              = None, # Tox ID or public key
+    contacts             = None, # list of Tox IDs or public keys
+    Tox_ID_to_public_key = True
     ):
     if contact:
         contacts = [contact]
     if contacts == "all":
         contacts = all_contacts()
     if contacts:
+        if Tox_ID_to_public_key:
+            contacts = [contact[:64] for contact in contacts]
         for contact in contacts:
-            command = "echo \"{contact}\" \"{text}\" > request/in".format(
-                contact = contact,
-                text    = text or ""
+            command = "echo 1 > {contact}/remove".format(
+                contact = contact
             )
             try:
                 engage_command(command = command)
@@ -285,18 +338,18 @@ def send_request(
                 pass
 
 def send_message(
-    contact  = None, # Tox ID
-    contacts = None, # list of Tox IDs
-    text     = None, # text to send
-    filepath = None, # file to send
-    ID64     = True  # reduce ID length from 76 characters to 64 for ratox
+    contact              = None, # Tox ID or public key
+    contacts             = None, # list of Tox IDs or public keys
+    text                 = None, # text to send
+    filepath             = None, # file to send
+    Tox_ID_to_public_key = True
     ):
     if contact:
         contacts = [contact]
     if contacts == "all":
         contacts = all_contacts()
     if contacts:
-        if ID64:
+        if Tox_ID_to_public_key:
             contacts = [contact[:64] for contact in contacts]
         for contact in contacts:
             if os.path.exists(contact):
@@ -328,8 +381,8 @@ def send_message(
         log.error("error -- no contacts specified")
 
 def send_request_and_message(
-    contact  = None, # Tox ID
-    contacts = None, # list of Tox IDs
+    contact  = None, # Tox ID or public key
+    contacts = None, # list of Tox IDs or public keys
     text     = None, # text to send
     filepath = None  # file to send
     ):
@@ -342,6 +395,16 @@ def send_request_and_message(
         contacts = contacts,
         text     = text,
         filepath = filepath
+    )
+
+def send_self_ID(
+    contact  = None, # Tox ID or public key
+    contacts = None  # list of Tox IDs or public keys
+    ):
+    send_message(
+        contact  = contact,
+        contacts = contacts,
+        text     = self_ID()
     )
 
 def all_contacts():
@@ -391,8 +454,8 @@ def get_messages():
                     )
 
 def received_messages(
-    contact  = None, # Tox ID
-    contacts = None, # list of Tox IDs
+    contact  = None, # Tox ID or public key
+    contacts = None, # list of Tox IDs or public keys
     unseen   = None  # unseen messages only
     ):
     global messages_received
@@ -418,8 +481,8 @@ def received_messages(
     return messages
 
 def last_received_message(
-    contact  = None, # Tox ID
-    contacts = None, # list of Tox IDs
+    contact  = None, # Tox ID or public key
+    contacts = None, # list of Tox IDs or public keys
     unseen   = True  # unseen messages only
     ):
     messages = received_messages(
@@ -431,6 +494,81 @@ def last_received_message(
         return messages[-1]
     else:
         return None
+
+def send_heartbeat(
+    contact  = None, # Tox ID or public key
+    contacts = None, # list of Tox IDs or public keys
+    text     = None
+    ):
+    if not text:
+        text = megaparsex.heartbeat_message()
+    text = text + "\n\nTox ID: " + self_ID()
+    try:
+        log.info("send heartbeat message: {text}".format(text = text))
+        send_request_and_message(
+            contact  = contact,
+            contacts = contacts,
+            text     = text
+        )
+    except:
+        pass
+    try:
+        import propyte
+        propyte.start_messaging_Pushbullet()
+        propyte.send_message_Pushbullet(text = text)
+    except:
+        pass
+
+def contact_calling(
+    contact              = None, # Tox ID or public key
+    Tox_ID_to_public_key = True
+    ):
+    """
+    Return a boolean indicating whether a specified contact is calling.
+    """
+    if contact:
+        if Tox_ID_to_public_key:
+            contact = contact[:64]
+        return "pending" in [line.rstrip("\n") for line in open(contact + "/call_state")][0]
+    else:
+        log.error("no contact specified")
+        return False
+
+def get_contacts_calling():
+    """
+    Return a list of contacts with pending calls.
+    """
+    contacts_calling = []
+    for contact in all_contacts():
+        if contact_calling(contact = contact):
+            contacts_calling.append(contact)
+    return contacts_calling
+
+def receive_call(
+    contact              = None, # Tox ID or public key
+    Tox_ID_to_public_key = True
+    ):
+    """
+    Answer a call from a specified contact or from the first contact found to be
+    calling. Call data is sent to aplay.
+    """
+    command      = None
+    command_base = "aplay -r 48000 -c 1 -f S16_LE - < {contact}/call_out"
+    if contact:
+        if Tox_ID_to_public_key:
+            contact = contact[:64]
+        if contact_calling(contact = contact):
+            command = command_base.format(contact = contact)
+    else:
+        contacts = get_contacts_calling()
+        if contacts:
+            command = command_base.format(contact = contacts[0])
+    if command:
+        engage_command(command = command)
+        return True
+    else:
+        log.error("no contact specified")
+        return False
 
 def get_input(
     contact  = None,
@@ -445,8 +583,8 @@ def get_input(
     response = None
     while response is None:
         response = last_received_message(
-            contact  = contact,  # Tox ID
-            contacts = contacts, # list of Tox IDs
+            contact  = contact,  # Tox ID or public key
+            contacts = contacts, # list of Tox IDs or public keys
             unseen   = True      # unseen messages only
         )
     return response.text()
@@ -492,6 +630,7 @@ def engage_command(
     command    = None,
     background = True
     ):
+    log.debug(command)
     if background:
         subprocess.Popen(
             [command],
@@ -528,29 +667,6 @@ def running(
         return True
     else:
         return False
-
-def send_heartbeat(
-    contact  = None, # Tox ID
-    contacts = None, # list of Tox IDs
-    text     = None
-    ):
-    if not text:
-        text = megaparsex.heartbeat_message()
-    try:
-        log.info("send heartbeat message: {text}".format(text = text))
-        send_request_and_message(
-            contact  = contact,
-            contacts = contacts,
-            text     = text
-        )
-    except:
-        pass
-    try:
-        import propyte
-        propyte.start_messaging_Pushbullet()
-        propyte.send_message_Pushbullet(text = text)
-    except:
-        pass
 
 # get existing messages and set them to seen
 get_messages()

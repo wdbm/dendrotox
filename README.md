@@ -92,8 +92,7 @@ cd ../..
 Install `ratox`.
 
 ```Bash
-#git clone git://git.2f30.org/ratox.git
-git clone https://github.com/kytvi2p/ratox.git
+git clone https://github.com/wdbm/ratox.git
 cd ratox
 make -j$(nproc)
 sudo make install
@@ -160,7 +159,7 @@ message = dendrotox.last_received_message()
 print(message)
 ```
 
-See example bot code for more advanced usage, including message parsing, confirmations and running commands.
+See module code and example bot code for more advanced usage, including message parsing, confirmations and running commands.
 
 # dendrotox_alert.py
 

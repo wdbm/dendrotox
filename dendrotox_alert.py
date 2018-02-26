@@ -41,7 +41,7 @@ options:
     -h, --help     display help message
     --version      display version and exit
 
-    --contacts=ID  comma-delimited approved contacts  [default: none]
+    --contacts=ID  comma-delimited approved contacts  [default: all]
     --text=TEXT    text to send                       [default: alert]
 """
 
@@ -52,28 +52,16 @@ import time
 import dendrotox
 
 name    = "dendrotox_alert"
-version = "2018-01-10T1829Z"
+version = "2018-02-16T1046Z"
 
 def main(options):
 
-    dendrotox.start_messaging(
-        pause_time = 60
-    )
-    dendrotox.set_name(
-        text = name + "-" + socket.gethostname()
-    )
-    if options["--contacts"] == "none":
-        contacts = dendrotox.all_contacts()
-    else:
-        contacts = options["--contacts"].split(",")
-        dendrotox.send_request(
-            contacts = contacts
-        )
+    dendrotox.start_messaging(pause_time = 60)
+    dendrotox.set_name(text = name + "@" + socket.gethostname())
+    contacts = options["--contacts"]
+    if contacts != "all": contacts = options["--contacts"].split(",")
     text = options["--text"]
-    dendrotox.send_message(
-        contacts = contacts,
-        text     = text
-    )
+    dendrotox.send_request_and_message(contacts = contacts, text = text)
     time.sleep(30)
     dendrotox.stop_messaging()
 
