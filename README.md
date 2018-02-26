@@ -136,9 +136,7 @@ print("Tox ID: " + dendrotox.self_ID())
 A message can be sent to a contact in the following way, where a contact is specified using a string containing their Tox ID:
 
 ```Python
-dendrotox.send_message(
-    contact = contact,
-    text    = "oohai"
+dendrotox.send_message(contact = contact, text = "oohai"
 )
 ```
 
@@ -154,10 +152,7 @@ dendrotox.send_message(
 A message can be sent to all contacts in the following way.
 
 ```Python
-dendrotox.send_message(
-    contacts = "all",
-    text     = "yo yo yo"
-)
+dendrotox.send_message(contacts = "all", text = "yo yo yo")
 ```
 
 A list of unseen messages received recently can be accessed in the following ways:
