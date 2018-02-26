@@ -28,7 +28,7 @@ Because Tox has no central servers, it is necessary to know a node that is alrea
 # setup
 
 ```Bash
-sudo apt-get install\
+sudo apt install    \
     autoconf        \
     autotools-dev   \
     automake        \
@@ -45,6 +45,22 @@ sudo apt-get install\
 ```Bash
 mkdir ~/Tox
 cd ~/Tox
+```
+
+Install FFmpeg.
+
+
+```Bash
+sudo apt install lame libmp3lame-dev
+wget http://ffmpeg.org/releases/ffmpeg-3.3.2.tar.bz2
+tar -xvf ffmpeg-3.3.2.tar.bz2
+cd ffmpeg-3.3.2
+./configure --enable-libmp3lame
+make -j$(nproc)
+sudo make install
+cd ..
+rm ffmpeg-3.3.2.tar.bz2
+rm -rf ffmpeg-3.3.2
 ```
 
 Install the Sodium crypto library.
