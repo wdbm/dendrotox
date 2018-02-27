@@ -37,18 +37,23 @@ import json
 import logging
 import os
 import requests
-import subprocess
 import sys
 import time
 import uuid
+import wave
+if sys.version_info[0] < 3:
+    import subprocess32 as subprocess
+else:
+    import subprocess
 
 import megaparsex
 import propyte
+from pydub import AudioSegment
 import shijian
 import technicolor
 
 name    = "dendrotox"
-version = "2018-02-26T2326Z"
+version = "2018-02-27T1427Z"
 
 log = logging.getLogger(name)
 log.addHandler(technicolor.ColorisingStreamHandler())
@@ -598,12 +603,13 @@ def send_call(
         if not os.path.exists(filepath):
             log.error("error -- {filepath} not found".format(filepath = filepath))
             return False
-        command = "ffmpeg -i {filepath} -ar {sample_rate} -f s16le -acodec pcm_s16le pipe:1 > {contact}/call_in".format(
+        command = "ffmpeg -loglevel panic -i {filepath} -ar {sample_rate} -f s16le -acodec pcm_s16le pipe:1 > {contact}/call_in".format(
             filepath    = filepath,
             sample_rate = sample_rate,
             contact     = contact
         )
-        engage_command(command = command, background = False)
+        duration = duration_WAVE_file(filepath) + 3
+        engage_command(command = command, background = False, timeout = duration)
         return True
     elif record:
         command = "arecord -r {sample_rate} -c 1 -f S16_LE > {contact}/call_in".format(
@@ -628,12 +634,13 @@ def send_call_synthesized_speech(
         filename_tmp = filename_tmp
     )
     engage_command(command = command, background = False)
+    append_silence_to_WAVE_file(filepath = filename_tmp, duration = 3000)
     send_call(
         contact     = contact,
         filepath    = filename_tmp,
         sample_rate = sample_rate
     )
-    #os.remove(filename_tmp)
+    os.remove(filename_tmp)
 
 def get_input(
     contact  = None,
@@ -693,10 +700,13 @@ def run_command(
 
 def engage_command(
     command    = None,
-    background = True
+    background = True,
+    timeout    = None
     ):
     log.debug(command)
     if background:
+        if timeout:
+            log.warning("warning -- command set to run in background; ignoring timeout")
         subprocess.Popen(
             [command],
             shell      = True,
@@ -710,9 +720,13 @@ def engage_command(
             executable = "/bin/bash",
             stdout     = subprocess.PIPE
         )
-        process.wait()
-        output, errors = process.communicate()
-        return output
+        try:
+            process.wait(timeout = timeout)
+            output, errors = process.communicate(timeout = timeout)
+            return output
+        except:
+            process.kill()
+            return False
     else:
         return None
 
@@ -731,6 +745,41 @@ def running(
     if matches_current:
         return True
     else:
+        return False
+
+def duration_WAVE_file(
+    filepath = None
+    ):
+    if filepath:
+        filepath = os.path.expanduser(filepath)
+        if not os.path.exists(filepath):
+            log.error("error -- {filepath} not found".format(filepath = filepath))
+            return False
+        file_WAVE = wave.open(filepath, "r")
+        duration = float(file_WAVE.getnframes()) / float(file_WAVE.getframerate())
+        file_WAVE.close()
+        return duration
+    else:
+        log.error("error -- wave file filepath not specified")
+        return False
+
+def append_silence_to_WAVE_file(
+    filepath = None,
+    duration = 3000  # ms
+    ):
+    """
+    Append a specified duration of silence to a WAVE file in place.
+    """
+    if filepath:
+        filepath = os.path.expanduser(filepath)
+        if not os.path.exists(filepath):
+            log.error("error -- {filepath} not found".format(filepath = filepath))
+            return False
+        sound = AudioSegment.from_wav(filepath) + AudioSegment.silent(duration = duration)
+        sound.export(filepath, format = "wav")
+        return True
+    else:
+        log.error("error -- wave file filepath not specified")
         return False
 
 # get existing messages and set them to seen
