@@ -52,23 +52,19 @@ import time
 import dendrotox
 
 name    = "dendrotox_alert_call"
-version = "2018-02-27T1431Z"
+version = "2018-02-27T1638Z"
 
 def main(options):
 
     contacts = options["--contacts"]
     text     = options["--text"]
-
     dendrotox.start_messaging(pause_time = 60)
     dendrotox.set_name(text = name + "@" + socket.gethostname())
-
     if contacts != "all": contacts = options["--contacts"].split(",")
     if contacts == "all": contacts = dendrotox.all_contacts()
-
     for contact in contacts:
         dendrotox.send_call_synthesized_speech(contact = contact, text = text)
-
-    dendrotox.stop_messaging()
+    #dendrotox.stop_messaging()
 
 if __name__ == "__main__":
     options = docopt.docopt(__doc__)

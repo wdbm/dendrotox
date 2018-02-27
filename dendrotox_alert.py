@@ -52,7 +52,7 @@ import time
 import dendrotox
 
 name    = "dendrotox_alert"
-version = "2018-02-16T1046Z"
+version = "2018-02-27T1638Z"
 
 def main(options):
 
@@ -63,7 +63,7 @@ def main(options):
     text = options["--text"]
     dendrotox.send_request_and_message(contacts = contacts, text = text)
     time.sleep(30)
-    dendrotox.stop_messaging()
+    #dendrotox.stop_messaging()
 
 if __name__ == "__main__":
     options = docopt.docopt(__doc__)
