@@ -136,17 +136,13 @@ print("Tox ID: " + dendrotox.self_ID())
 A message can be sent to a contact in the following way, where a contact is specified using a string containing their Tox ID:
 
 ```Python
-dendrotox.send_message(contact = contact, text = "oohai"
-)
+dendrotox.send_message(contact = contact, text = "oohai")
 ```
 
 A message can be sent to multiple contacts in the following way, where contacts are specified as a list of strings containing contacts' Tox IDs.
 
 ```Python
-dendrotox.send_message(
-    contacts = [contact_1, contact_2],
-    text     = "sup"
-)
+dendrotox.send_message(contacts = [contact_1, contact_2], text = "sup")
 ```
 
 A message can be sent to all contacts in the following way.
