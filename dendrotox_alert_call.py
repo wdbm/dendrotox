@@ -11,8 +11,8 @@
 # LICENCE INFORMATION                                                          #
 #                                                                              #
 # This program sends a call alert using the Tox communications network. If a   #
-# contact is specified, that contact is added. If no contact is specified,     #
-# then all available contacts are alerted.                                     #
+# contact is specified, then that contact is added. If no contact is           #
+# specified, then all available contacts are alerted.                          #
 #                                                                              #
 # copyright (C) 2018 William Breaden Madden                                    #
 #                                                                              #
@@ -52,7 +52,7 @@ import time
 import dendrotox
 
 name    = "dendrotox_alert_call"
-version = "2018-02-27T1638Z"
+version = "2018-03-02T0004Z"
 
 def main(options):
 
@@ -63,7 +63,14 @@ def main(options):
     if contacts != "all": contacts = options["--contacts"].split(",")
     if contacts == "all": contacts = dendrotox.all_contacts()
     for contact in contacts:
-        dendrotox.send_call_synthesized_speech(contact = contact, text = text)
+        dendrotox.send_call_synthesized_speech(
+            contact            = contact,
+            text               = text,
+            preference_program = "festival"
+            #preference_program = "pico2wave"
+            #preference_program = "espeak"
+            #preference_program = "deep_throat.py"
+        )
     #dendrotox.stop_messaging()
 
 if __name__ == "__main__":

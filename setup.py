@@ -9,7 +9,7 @@ def main():
 
     setuptools.setup(
         name             = "dendrotox",
-        version          = "2018.02.27.1427",
+        version          = "2018.03.03.0110",
         description      = "Python interface to Tox distributed communications",
         long_description = long_description(),
         url              = "https://github.com/wdbm/dendrotox",
@@ -28,7 +28,8 @@ def main():
         scripts          = [
                            "dendrotox.py",
                            "dendrotox_alert.py",
-                           "dendrotox_alert_call.py"
+                           "dendrotox_alert_call.py",
+                           "dendrotox_call_microphone.py"
                            ],
         entry_points     = """
                            [console_scripts]

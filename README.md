@@ -40,6 +40,7 @@ sudo apt install    \
     git             \
     libtool         \
     libsodium-dev   \
+    sox             \
     yasm
 ```
 
@@ -62,6 +63,18 @@ sudo make install
 cd ..
 rm ffmpeg-3.3.2.tar.bz2
 rm -rf ffmpeg-3.3.2
+```
+
+Set up [Festival](http://www.cstr.ed.ac.uk/projects/festival/), [eSpeak](http://espeak.sourceforge.net/), Pico TTS and [deep_throat](https://github.com/wdbm/deep_throat) for speech capabilities.
+
+```Bash
+sudo apt install     \
+    festival         \
+    espeak           \
+    libttspico0      \
+    libttspico-utils \
+    libttspico-data
+sudo pip install deep_throat
 ```
 
 Install the Sodium crypto library.
@@ -133,6 +146,8 @@ dendrotox.start_messaging()
 print("Tox ID: " + dendrotox.self_ID())
 ```
 
+## sending messages
+
 A message can be sent to a contact in the following way, where a contact is specified using a string containing their Tox ID:
 
 ```Python
@@ -151,6 +166,8 @@ A message can be sent to all contacts in the following way.
 dendrotox.send_message(contacts = "all", text = "yo yo yo")
 ```
 
+## receiving messages
+
 A list of unseen messages received recently can be accessed in the following ways:
 
 ```Python
@@ -163,10 +180,18 @@ message = dendrotox.last_received_message()
 print(message)
 ```
 
+## sending sound calls
+
 A sound call can be sent to a contact in a few ways. One way is by sending a sound file:
 
 ```Python
 dendrotox.send_call(contact = contact, filepath = "alert.wav")
+```
+
+Another way is by using synthesized speech:
+
+```Python
+dendrotox.send_call_synthesized_speech(contact = contact, text = "This is an alert.")
 ```
 
 Another way is by using a microphone:
@@ -175,10 +200,30 @@ Another way is by using a microphone:
 dendrotox.send_call(contact = contact, record = True)
 ```
 
-Another way is by using synthesized speech:
+Sending a sound call by using a microphone can feature a record duration specification in order to ensure that the process does not hang:
 
 ```Python
-dendrotox.send_call_synthesized_speech(contact = contact, text = "This is an alert.")
+dendrotox.send_call(contact = contact, record = True, duration_record = 30)
+```
+
+## receiving sound calls
+
+A sound call can be received from a contact in a few ways. One way is by using speakers:
+
+```Python
+dendrotox.receive_call(contact = contact)
+```
+
+If a contact is not specified, the first contacted identified as calling is used to receive a call:
+
+```Python
+dendrotox.receive_call()
+```
+
+Another way is by receiving a sound file:
+
+```Python
+dendrotox.receive_call(filepath = "call.wav")
 ```
 
 See module code and example bot code for more advanced usage, including calls, message parsing, confirmations and running commands.
@@ -190,3 +235,7 @@ The script `dendrotox_alert.py` is a command line script that can be used to sen
 ```Bash
 dendrotox_alert.py --text="alert"
 ```
+
+# future
+
+Under consideration is speech-to-text for receiving calls.

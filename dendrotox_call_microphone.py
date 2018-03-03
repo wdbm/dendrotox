@@ -4,17 +4,17 @@
 """
 ################################################################################
 #                                                                              #
-# dendrotox_alert                                                              #
+# dendrotox_call_microphone                                                    #
 #                                                                              #
 ################################################################################
 #                                                                              #
 # LICENCE INFORMATION                                                          #
 #                                                                              #
-# This program sends an alert using the Tox communications network. If a       #
-# contact is specified, then that contact is added. If no contact is           #
+# This program sends a micrphone call using the Tox communications network. If #
+# a contact is specified, then that contact is added. If no contact is         #
 # specified, then all available contacts are alerted.                          #
 #                                                                              #
-# copyright (C) 2017 William Breaden Madden                                    #
+# copyright (C) 2018 William Breaden Madden                                    #
 #                                                                              #
 # This software is released under the terms of the GNU General Public License  #
 # version 3 (GPLv3).                                                           #
@@ -38,11 +38,11 @@ usage:
     program [options]
 
 options:
-    -h, --help     display help message
-    --version      display version and exit
+    -h, --help             display help message
+    --version              display version and exit
 
-    --contacts=ID  comma-delimited approved contacts  [default: all]
-    --text=TEXT    text to send                       [default: alert]
+    --contacts=ID          comma-delimited approved contacts  [default: all]
+    --duration_record=INT  record duration (s)                [default: 10]
 """
 
 import docopt
@@ -51,18 +51,23 @@ import time
 
 import dendrotox
 
-name    = "dendrotox_alert"
-version = "2018-03-02T0004Z"
+name    = "dendrotox_call_microphone"
+version = "2018-03-02T0022Z"
 
 def main(options):
 
+    contacts        =     options["--contacts"]
+    duration_record = int(options["--duration_record"])
     dendrotox.start_messaging(pause_time = 60)
     dendrotox.set_name(text = name + "@" + socket.gethostname())
-    contacts = options["--contacts"]
     if contacts != "all": contacts = options["--contacts"].split(",")
-    text = options["--text"]
-    dendrotox.send_request_and_message(contacts = contacts, text = text)
-    time.sleep(30)
+    if contacts == "all": contacts = dendrotox.all_contacts()
+    for contact in contacts:
+        dendrotox.send_call(
+            contact         = contact,
+            record          = True,
+            duration_record = duration_record
+        )
     #dendrotox.stop_messaging()
 
 if __name__ == "__main__":

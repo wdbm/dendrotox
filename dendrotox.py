@@ -53,7 +53,7 @@ import shijian
 import technicolor
 
 name    = "dendrotox"
-version = "2018-02-27T1427Z"
+version = "2018-03-03T0110Z"
 
 log = logging.getLogger(name)
 log.addHandler(technicolor.ColorisingStreamHandler())
@@ -197,21 +197,27 @@ class Message(object):
         )
 
 def self_ID():
-    self_ID = [line.rstrip("\n") for line in open("id")][0]
-    return self_ID
+    try:
+        self_ID = [line.rstrip("\n") for line in open("id")][0]
+        return self_ID
+    except:
+        log.error("error -- ratox not running?")
 
 def start_messaging(
     path_ratox_executable = "/usr/local/bin/ratox",
     launch                = True,
     pause                 = True,
-    pause_time            = 20
+    pause_time            = 20,
+    log_level             = logging.INFO
     ):
+    log.setLevel(log_level)
     executables = [
         "aplay",
         "arecord",
         "bash",
         "ffmpeg",
         "ratox",
+        "sox",
         "text2wave"
     ]
     executables_speech = [
@@ -538,7 +544,10 @@ def contact_calling(
     if contact:
         if Tox_ID_to_public_key:
             contact = contact[:64]
-        return "pending" in [line.rstrip("\n") for line in open(contact + "/call_state")][0]
+        try:
+            return "pending" in [line.rstrip("\n") for line in open(contact + "/call_state")][0]
+        except:
+            log.error("error -- invalid contact specified?")
     else:
         log.error("error -- no contact specified")
         return False
@@ -555,40 +564,55 @@ def get_contacts_calling():
 
 def receive_call(
     contact              = None, # Tox ID or public key
-    Tox_ID_to_public_key = True
+    Tox_ID_to_public_key = True,
+    filepath             = None, # sound recording file
+    sample_rate          = 48000
     ):
     """
     Answer a call from a specified contact or from the first contact found to be
-    calling. Call data is sent to aplay.
+    calling. Call data is sent to aplay (speakers) or file as specified. Call
+    data receiving for file is stopped on detection of 10 s of 5 % silence.
     """
-    command      = None
-    command_base = "aplay -r 48000 -c 1 -f S16_LE - < {contact}/call_out"
     if contact:
         if Tox_ID_to_public_key:
             contact = contact[:64]
         if contact_calling(contact = contact):
-            command = command_base.format(contact = contact)
+            contact = contact
+        else:
+            log.error("error -- contact specified not identified as calling")
+            return False
     else:
         contacts = get_contacts_calling()
         if contacts:
-            command = command_base.format(contact = contacts[0])
-    if command:
-        engage_command(command = command)
-        return True
+            contact = contacts[0]
+        else:
+            log.error("error -- no contacts identified as calling")
+            return False
+    if filepath:
+        command = "rec -q -r {sample_rate} -c 1 {filepath} silence 0 1 0:00:10 5% < {contact}/call_out".format(
+            sample_rate = sample_rate,
+            filepath    = filepath,
+            contact     = contact
+        )
     else:
-        log.error("error -- no contact specified")
-        return False
+        command = "aplay -r {sample_rate} -c 1 -f S16_LE - < {contact}/call_out".format(
+            sample_rate = sample_rate,
+            contact     = contact
+        )
+    engage_command(command = command, background = False)
+    return True
 
 def send_call(
-    contact              = None, # Tox ID or public key
+    contact              = None,  # Tox ID or public key
     Tox_ID_to_public_key = True,
     filepath             = None,
     record               = False,
+    duration_record      = None,  # arecord (microphone) duration (s)
     sample_rate          = 48000
     ):
     """
     Send a call to a specified contact. Sound is sent from sound file or arecord
-    (for microphone) as specified.
+    (microphone) as specified.
     """
     if contact:
         if Tox_ID_to_public_key:
@@ -603,20 +627,30 @@ def send_call(
         if not os.path.exists(filepath):
             log.error("error -- {filepath} not found".format(filepath = filepath))
             return False
-        command = "ffmpeg -loglevel panic -i {filepath} -ar {sample_rate} -f s16le -acodec pcm_s16le pipe:1 > {contact}/call_in".format(
+        duration = duration_WAVE_file(filepath) + 3
+        command = "ffmpeg -loglevel panic -i {filepath} -ar {sample_rate} -f s16le -acodec pcm_s16le pipe:1 > {contact}/call_in &".format(
             filepath    = filepath,
             sample_rate = sample_rate,
             contact     = contact
         )
-        duration = duration_WAVE_file(filepath) + 3
         engage_command(command = command, background = False, timeout = duration)
         return True
     elif record:
-        command = "arecord -r {sample_rate} -c 1 -f S16_LE > {contact}/call_in".format(
-            sample_rate = sample_rate,
-            contact     = contact
-        )
-        engage_command(command = command)
+        if duration_record:
+            command = "arecord -r {sample_rate} -c 1 -f S16_LE -duration={duration_record} > {contact}/call_in".format(
+                sample_rate     = sample_rate,
+                duration_record = duration_record,
+                contact         = contact
+            )
+        else:
+            command = "arecord -r {sample_rate} -c 1 -f S16_LE > {contact}/call_in".format(
+                sample_rate = sample_rate,
+                contact     = contact
+            )
+        #engage_command(command = command, background = False, timeout = duration_record + 1)
+        engage_command(command = command, background = True)
+        time.sleep(duration_record)
+        engage_command(command = "killall arecord")
         return True
     else:
         log.error("error -- neither sound file nor recording specified for sending call")
@@ -626,21 +660,21 @@ def send_call_synthesized_speech(
     contact              = None,                # Tox ID or public key
     text                 = "This is an alert.",
     Tox_ID_to_public_key = True,
-    sample_rate          = 48000
+    sample_rate          = 48000,
+    preference_program   = "festival"
     ):
-    filename_tmp = shijian.propose_filename(filename = shijian.time_UTC() + ".wav")
-    command = "echo \"{text}\" | text2wave -o {filename_tmp}".format(
-        text         = text,
-        filename_tmp = filename_tmp
+    filepath_tmp = propyte.say_tmp_filepath(
+        text               = text,
+        preference_program = preference_program
     )
-    engage_command(command = command, background = False)
-    append_silence_to_WAVE_file(filepath = filename_tmp, duration = 3000)
+    log.debug("save synthesized speech to " + filepath_tmp)
+    append_silence_to_WAVE_file(filepath = filepath_tmp, duration = 3000)
     send_call(
         contact     = contact,
-        filepath    = filename_tmp,
+        filepath    = filepath_tmp,
         sample_rate = sample_rate
     )
-    os.remove(filename_tmp)
+    #os.remove(filepath_tmp)
 
 def get_input(
     contact  = None,
@@ -725,6 +759,7 @@ def engage_command(
             output, errors = process.communicate(timeout = timeout)
             return output
         except:
+            log.debug("timeout -- kill process")
             process.kill()
             return False
     else:
