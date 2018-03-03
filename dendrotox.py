@@ -53,7 +53,7 @@ import shijian
 import technicolor
 
 name    = "dendrotox"
-version = "2018-03-03T0110Z"
+version = "2018-03-03T0125Z"
 
 log = logging.getLogger(name)
 log.addHandler(technicolor.ColorisingStreamHandler())

@@ -9,7 +9,7 @@ def main():
 
     setuptools.setup(
         name             = "dendrotox",
-        version          = "2018.03.03.0110",
+        version          = "2018.03.03.0125",
         description      = "Python interface to Tox distributed communications",
         long_description = long_description(),
         url              = "https://github.com/wdbm/dendrotox",
@@ -23,7 +23,7 @@ def main():
                            "docopt",
                            "megaparsex",
                            "pydub",
-                           "subprocess32"
+                           "subprocess32;python_version<'3.0'"
                            ],
         scripts          = [
                            "dendrotox.py",
