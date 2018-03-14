@@ -2,7 +2,7 @@
 
 `dendrotox` is a Python module designed to enable Python code to interact with the [Tox](https://tox.chat/) distributed communications network, including for the purposes of scripts communicating with people or other scripts. It uses a 2015 version of [ToxCore](https://github.com/irungentoo/toxcore/releases/tag/api_old_version) and [ratox](https://github.com/kytvi2p/ratox) for interfacing with the Tox network and [megaparsex](https://github.com/wdbm/megaparsex) for parsing.
 
-In particular, `dendrotox` interacts with the filesystem provided by the FIFO Tox client [ratox](https://github.com/kytvi2p/ratox). `dendrotox` also provides functionality to send and receive messages, to parse input, to send files, to request confirmations, to provide information such as IP address and weather information, and to run arbitrary commands, including functionality to launch reverse-SSH connections and to restart a script.
+In particular, `dendrotox` interacts with the filesystem provided by the FIFO Tox client [ratox](https://github.com/kytvi2p/ratox). `dendrotox` also provides functionality to send and receive messages, to parse input, to send files, to request confirmations, to provide information such as IP address and weather information, and to run arbitrary commands, including functionality to launch reverse-SSH connections and to restart a script. It can also make and receive calls, using microphone, speakers and synthesized voices.
 
 # Tox
 
