@@ -38,6 +38,7 @@ sudo apt install    \
     cmake           \
     festival        \
     git             \
+    libopus-dev     \
     libtool         \
     libsodium-dev   \
     sox             \
@@ -58,7 +59,7 @@ wget http://ffmpeg.org/releases/ffmpeg-3.3.2.tar.bz2
 tar -xvf ffmpeg-3.3.2.tar.bz2
 cd ffmpeg-3.3.2
 ./configure --enable-libmp3lame
-make -j$(nproc)
+time make -j$(nproc)
 sudo make install
 cd ..
 rm ffmpeg-3.3.2.tar.bz2
@@ -85,7 +86,7 @@ cd libsodium
 git checkout tags/1.0.3
 ./autogen.sh
 ./configure
-make check
+time make check
 sudo checkinstall --install --pkgname libsodium --pkgversion 1.0.0 --nodoc
 sudo ldconfig
 cd ..
@@ -98,7 +99,7 @@ git clone https://chromium.googlesource.com/webm/libvpx
 cd libvpx
 git checkout tags/v1.4.0
 ./configure --enable-shared --disable-static
-make -j$(nproc)
+time make -j$(nproc)
 sudo make install
 cd ..
 ```
@@ -113,7 +114,7 @@ autoreconf --install --force
 mkdir _build
 cd _build
 ../configure
-make -j$(nproc)
+time make -j$(nproc)
 sudo make install
 sudo ldconfig
 cd ../..
@@ -124,8 +125,9 @@ Install `ratox`.
 ```Bash
 git clone https://github.com/wdbm/ratox.git
 cd ratox
-make -j$(nproc)
+time make -j$(nproc)
 sudo make install
+cd ..
 ```
 
 Install dendrotox.
